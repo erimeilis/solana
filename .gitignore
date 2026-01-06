@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build outputs
+target/
+dist/
+.next/
+out/
+
+# Anchor
+.anchor/
+test-ledger/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.dev.vars
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Keypairs (NEVER commit private keys)
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!Anchor.toml
+!**/metadata/*.json
+
+# Test artifacts
+coverage/
+.nyc_output/
