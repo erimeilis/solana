@@ -1,4 +1,4 @@
-# Solana Blockchain Learning Plan 2025
+# Solana Blockchain Learning Plan
 
 A comprehensive roadmap to learn Solana development through hands-on projects.
 
@@ -51,11 +51,15 @@ Solana has become the **#1 blockchain for new developers** in 2024-2025, with ov
 
 Before diving in, understand these core concepts:
 
-1. **Wallets**: Your identity on blockchain (public/private key pairs)
+1. **Wallets / Keypairs**: Your identity on blockchain. A "wallet" is really just a **keypair** — a pair of cryptographically linked keys:
+   - **Private key** (secret key): A 64-byte array stored in a JSON file (e.g. `~/.config/solana/id.json`). This is what signs transactions — proving you authorized them. **Never share it.**
+   - **Public key** (wallet address): A Base58-encoded string derived from the private key (e.g. `Eg4yxfELo5kyets2jQv83t9ET1MtS3hBeGSjHLyueB29`). This is your identity — anyone can see it, send you tokens, or look up your balance.
+   - **Seed phrase** (mnemonic): 12 words that can regenerate your private key. A human-readable backup.
+   - Apps like Phantom are just friendly UIs around the same keypair concept. The CLI tool `solana-keygen` generates the raw keypair file directly.
 2. **Transactions**: Signed instructions that modify blockchain state
-3. **Accounts**: Where data lives on Solana (programs, tokens, user data)
-4. **Programs**: Solana's term for smart contracts (deployed code)
-5. **Gas/Fees**: Cost to execute transactions (very low on Solana)
+3. **Accounts**: Where data lives on Solana (programs, tokens, user data). Everything on Solana is an account — your wallet, your tokens, deployed programs, program data. Each account has an owner, a balance (in lamports), and optional data.
+4. **Programs**: Solana's term for smart contracts (deployed code that lives in an account)
+5. **Fees**: Cost to execute transactions (very low on Solana — ~$0.00025 per tx). Paid in SOL, denominated in **lamports** (1 SOL = 1,000,000,000 lamports).
 
 ### System Requirements
 
@@ -64,8 +68,26 @@ Before diving in, understand these core concepts:
 - 20GB free disk space
 - macOS, Linux, or Windows (WSL2)
 - Node.js 18+ and npm
-- Rust toolchain (will install)
+- Rust toolchain
 ```
+
+### Our Current Setup
+
+Installed and configured on 2026-03-14:
+
+| Tool | Version | Notes |
+|------|---------|-------|
+| Rust | rustc 1.93.1 | Already installed |
+| Node.js | v24.13.0 | Already installed |
+| Solana CLI | 3.1.11 (Agave) | `sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"` |
+| Anchor CLI | 0.32.1 | Via AVM (Anchor Version Manager) |
+| spl-token CLI | 5.5.0 | `cargo install spl-token-cli` |
+
+**Configuration:**
+- Network: **devnet** (`solana config set --url devnet`)
+- Keypair: `~/.config/solana/id.json`
+- Wallet address: `Eg4yxfELo5kyets2jQv83t9ET1MtS3hBeGSjHLyueB29`
+- Balance: 10 SOL (devnet, via https://faucet.solana.com)
 
 ---
 
@@ -142,18 +164,24 @@ pub struct Initialize<'info> {
 # 1. Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# 2. Install Solana CLI
-sh -c "$(curl -sSfL https://release.solana.com/v1.18.0/install)"
+# 2. Install Solana CLI (Agave — replaces legacy solana-install)
+sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
 
-# 3. Install Anchor
-cargo install --git https://github.com/coral-xyz/anchor anchor-cli
+# 3. Install Anchor via AVM (Anchor Version Manager)
+cargo install --git https://github.com/coral-xyz/anchor avm --force
+avm install latest
+avm use latest
 
-# 4. Verify installations
-solana --version
-anchor --version
+# 4. Install SPL Token CLI (needed for Project 1)
+cargo install spl-token-cli
+
+# 5. Verify installations
+solana --version    # solana-cli 3.1.11 (Agave)
+anchor --version    # anchor-cli 0.32.1
+spl-token --version # spl-token-cli 5.5.0
 rustc --version
 
-# 5. Configure for devnet (free testing)
+# 6. Configure for devnet (free testing)
 solana config set --url devnet
 solana-keygen new  # Creates your wallet
 solana airdrop 2   # Get free devnet SOL
