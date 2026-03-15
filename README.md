@@ -50,7 +50,7 @@ See the full plan: **[Solana Learning Plan](docs/SOLANA_LEARNING_PLAN.md)**
 ## Progress
 
 - [x] Research and create learning plan
-- [ ] Project 1: Token Creator
+- [x] Project 1: Token Creator — catCoin (CAT) on devnet
 - [ ] Project 2: Vault DApp
 - [ ] Project 3: NFT Platform
 
