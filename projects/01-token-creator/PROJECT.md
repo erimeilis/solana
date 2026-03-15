@@ -17,8 +17,8 @@ Create your own fungible token on Solana devnet.
 - [x] Step 3: Create a Token Account
 - [x] Step 4: Mint Tokens
 - [x] Step 5: Check Balances and Explore on Solscan
-- [ ] Step 6: Add Token Metadata (name, symbol, image)
-- [ ] Step 7: Transfer Tokens
+- [x] Step 6: Add Token Metadata (name, symbol, image)
+- [x] Step 7: Transfer Tokens
 
 ---
 
@@ -272,7 +272,74 @@ The token shows as "Unknown Token" — no name, no symbol, no image. That's what
 
 Give your token a human-readable name, symbol, and image using the Metaplex Token Metadata Program.
 
-*Details to be added when we reach this step.*
+> See [notes/pda-and-metaplex-metadata.md](notes/pda-and-metaplex-metadata.md) for what PDAs and Metaplex are.
+> See [notes/offchain-storage.md](notes/offchain-storage.md) for off-chain storage options (Arweave, IPFS, Cloudflare R2, etc.).
+
+Token metadata has two parts:
+- **On-chain**: name, symbol, URI — stored in a Metadata PDA linked to the mint
+- **Off-chain**: description, image — JSON file at the URI
+
+We used **metaboss** CLI to create the on-chain metadata:
+
+```bash
+# Install metaboss (download binary from GitHub releases)
+# https://github.com/samuelvanderwaal/metaboss/releases
+
+# catcoin.json (metaboss input — local file):
+# { "name": "catCoin", "symbol": "CAT", "uri": "https://raw.githubusercontent.com/..." }
+
+# catcoin-offchain.json (hosted publicly at the URI):
+# { "name": "catCoin", "symbol": "CAT", "description": "...", "image": "https://..." }
+
+metaboss create metadata \
+  --mint 93xVZh2Fdvq3axqQHurhBmuMkqANsBDcqT6iraMuJoAj \
+  --metadata metadata/catcoin.json
+```
+
+**Our result**:
+```
+Name:   catCoin
+Symbol: CAT
+URI:    https://raw.githubusercontent.com/erimeilis/solana/feature/01-token-creator/projects/01-token-creator/metadata/catcoin-offchain.json
+Image:  https://static.thenounproject.com/png/707608-200.png
+```
+
+**Block explorers** (devnet):
+- Solana Explorer (shows metadata correctly): https://explorer.solana.com/address/93xVZh2Fdvq3axqQHurhBmuMkqANsBDcqT6iraMuJoAj?cluster=devnet
+- Solscan (may not render metadata for unverified devnet tokens): https://solscan.io/token/93xVZh2Fdvq3axqQHurhBmuMkqANsBDcqT6iraMuJoAj?cluster=devnet
+
+Note: "Not verified" badge on the explorer is expected — verification requires registering on a trusted token list. For devnet learning this doesn't matter.
+
+**Transaction history** (5 transactions total):
+1. `create` — created the Mint Account
+2. `createAccount` — created our Token Account (ATA)
+3. `mintToChecked` — minted 1,000,000 tokens
+4. `createMetadataAccountV3` — attached name/symbol/image via Metaplex
+5. `updateMetadataAccountV2` — renamed from "CAtCoin" to "catCoin"
+
+### Updating metadata after creation
+
+Metadata is **mutable** by default — you can rename, change symbol, update image/URI any time, as long as you're the update authority (which you are).
+
+```bash
+# Rename
+metaboss update name --account <MINT_ADDRESS> --new-name "newName"
+
+# Change symbol
+metaboss update symbol --account <MINT_ADDRESS> --new-symbol "NEW"
+
+# Change the off-chain JSON URL (to update image/description)
+metaboss update uri --account <MINT_ADDRESS> --new-uri "https://..."
+
+# Update everything at once
+metaboss update data --account <MINT_ADDRESS> --new-data new-metadata.json
+```
+
+If you want to **lock metadata forever** (no more changes), you can make it immutable:
+```bash
+metaboss set immutable --account <MINT_ADDRESS>
+```
+This is irreversible — once immutable, nobody can change the name, symbol, or URI ever again.
 
 ---
 
@@ -280,8 +347,73 @@ Give your token a human-readable name, symbol, and image using the Metaplex Toke
 
 Send tokens to another wallet to see transfers in action.
 
+**Setup**: We generated a second keypair to act as the recipient:
 ```bash
-spl-token transfer <MINT_ADDRESS> 100 <RECIPIENT_ADDRESS>
+solana-keygen new --outfile recipient-keypair.json --no-bip39-passphrase
+# Recipient: 9V26J1D7pWjn9W3wD3zMZW2e4dCEEk4PHgA6y8qvaM9S
 ```
 
-*Details to be added when we reach this step.*
+**Transfer**:
+```bash
+spl-token transfer 93xVZh2Fdvq3axqQHurhBmuMkqANsBDcqT6iraMuJoAj 100 \
+  9V26J1D7pWjn9W3wD3zMZW2e4dCEEk4PHgA6y8qvaM9S \
+  --fund-recipient --allow-unfunded-recipient
+```
+
+Flags explained:
+- `--fund-recipient` — we pay to create the recipient's Token Account since they have no SOL
+- `--allow-unfunded-recipient` — required when the recipient wallet has zero SOL balance
+
+**Our result**:
+```
+Our wallet:      999,900 CAT  (sent 100)
+Recipient:           100 CAT  (received)
+SOL remaining:     9.979 SOL
+```
+
+**Actual cost breakdown** (from on-chain transaction data):
+```
+Before: 9.981353517 SOL
+After:  9.979309237 SOL
+Total:  0.002044280 SOL
+
+  ├── 0.000005000 SOL  — transaction fee (to validators)
+  └── 0.002039280 SOL  — rent for recipient's Token Account (165 bytes)
+```
+
+The transfer itself costs only **0.000005 SOL**. The 0.002 SOL was a one-time cost to create the recipient's Token Account. If we send catCoin to the same recipient again, it costs only 0.000005 SOL — the Token Account already exists.
+
+What happened under the hood:
+1. The recipient had no Token Account for catCoin — so one was created at `8TyQh...9Vm` (0.00203928 SOL rent)
+2. 100 CAT transferred from our Token Account to the new one
+3. Transaction fee: 0.000005 SOL
+
+```bash
+# Verify balances
+spl-token balance 93xVZh2Fdvq3axqQHurhBmuMkqANsBDcqT6iraMuJoAj
+# 999900
+
+spl-token balance --owner 9V26J1D7pWjn9W3wD3zMZW2e4dCEEk4PHgA6y8qvaM9S 93xVZh2Fdvq3axqQHurhBmuMkqANsBDcqT6iraMuJoAj
+# 100
+```
+
+---
+
+## Project 1 Complete!
+
+All 7 steps done. Here's what we built and learned:
+
+| What we did | What we learned |
+|-------------|----------------|
+| Created a Mint Account | Solana account model, SPL Token Program |
+| Created a Token Account | Associated Token Accounts (ATAs), rent |
+| Minted 1,000,000 tokens | Mint authority, supply control |
+| Added metadata via metaboss | PDAs, Metaplex Token Metadata Program |
+| Renamed the token | Mutable vs immutable metadata |
+| Transferred tokens | Cross-wallet transfers, funding recipients |
+
+**Final state**:
+- Token: **catCoin (CAT)** — `93xVZh2Fdvq3axqQHurhBmuMkqANsBDcqT6iraMuJoAj`
+- Our balance: 999,900 CAT + 9.979 SOL
+- Recipient balance: 100 CAT
+- Explorer: https://explorer.solana.com/address/93xVZh2Fdvq3axqQHurhBmuMkqANsBDcqT6iraMuJoAj?cluster=devnet

@@ -1,5 +1,5 @@
 {
-  "name": "CAtCoin",
+  "name": "catCoin",
   "symbol": "CAT",
   "uri": "https://raw.githubusercontent.com/erimeilis/solana/feature/01-token-creator/projects/01-token-creator/metadata/catcoin-offchain.json"
 }

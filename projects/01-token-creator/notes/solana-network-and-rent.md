@@ -38,7 +38,7 @@ Rent is a **one-time deposit** (rent-exempt). Pay once, data stays forever.
 
 | What | Size | Rent |
 |------|------|------|
-| Mint Account | 82 bytes | ~0.0015 SOL |
-| Token Account | 165 bytes | ~0.002 SOL |
+| Mint Account | 82 bytes | 0.0014616 SOL |
+| Token Account | 165 bytes | 0.00203928 SOL |
 | Anchor program | few KB | ~0.01-0.1 SOL |
 | Transaction fee | — | ~0.000005 SOL per tx |
