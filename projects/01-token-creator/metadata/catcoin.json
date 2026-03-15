@@ -1,6 +1,5 @@
 {
   "name": "CAtCoin",
   "symbol": "CAT",
-  "description": "A token created while learning Solana blockchain development",
-  "image": "https://static.thenounproject.com/png/707608-200.png"
+  "uri": "https://raw.githubusercontent.com/erimeilis/solana/feature/01-token-creator/projects/01-token-creator/metadata/catcoin-offchain.json"
 }
