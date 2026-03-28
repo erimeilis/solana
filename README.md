@@ -52,7 +52,7 @@ See the full plan: **[Solana Learning Plan](docs/SOLANA_LEARNING_PLAN.md)**
 - [x] Research and create learning plan
 - [x] Project 1: Token Creator — catCoin (CAT) on devnet
 - [x] Project 2: Vault DApp — SOL vault with Anchor, PDAs, CPI + Next.js frontend
-- [ ] Project 3: NFT Platform
+- [x] Project 3: NFT Platform — Cool Cats collection with Candy Machine, guards, and minting frontend
 
 ---
 
